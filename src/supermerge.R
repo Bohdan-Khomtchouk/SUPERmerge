@@ -160,7 +160,14 @@ supermerge<-function(bamname, interval, depth, dup, out, strand, cflag) {
         adf<-as.data.frame(a)
         names(adf)[6]<-"records"
 
-        output_df<-data.frame(df$seqnames, df$start+interval, df$end-interval, dfn$Freq, (dfn$Freq / (df$width - (2 * interval) + 2)), final$seqnames, final$start, final$end, final$gene_id, final$gene_type, adf$records)
+	# check for gene_type or gene_biotype field
+	if ("gene_type" %in% colnames(final)) {
+	        output_df<-data.frame(df$seqnames, df$start + interval, df$end - interval, dfn$Freq, (dfn$Freq / (df$width - (2 * interval) + 2)), final$seqnames, final$start, final$end, final$gene_id, final$gene_type, adf$records) }
+	else if ("gene_biotype" %in% colnames(final)) {
+	        output_df<-data.frame(df$seqnames, df$start + interval, df$end - interval, dfn$Freq, (dfn$Freq / (df$width - (2 * interval) + 2)), final$seqnames, final$start, final$end, final$gene_id, final$gene_biotype, adf$records) }
+	else {
+	        output_df<-data.frame(df$seqnames, df$start + interval, df$end - interval, dfn$Freq, (dfn$Freq / (df$width - (2 * interval) + 2)), final$seqnames, final$start, final$end, final$gene_id, adf$records) }
+		
         colnames(output_df)<-c("Chr", "Start", "Stop", "Bases", "% bases meeting criteria", "GTF chr", "GTF start", "GTF stop", "GTF gene_id", "GTF gene_type", "Reads in Expanded Interval")
 	return(output_df)
 }
@@ -206,6 +213,7 @@ for(i in 1:length(ip_df)) {
 	usq3[i]<-length(gr)
 }
 st<-data.frame(TotalReads=usq, PeakReads=usq2, FileName=files2, PeakNumber=usq3)
+write.table(st, file="supermerge_output.txt")
 
 # Draw the graphical output here
 library(ggplot2)
@@ -232,4 +240,5 @@ geom_bar(position="fill", stat="identity")
 p4
 dev.off()
 
+save.image("workspace.RData")
 cat ("END OF RUN\n")
